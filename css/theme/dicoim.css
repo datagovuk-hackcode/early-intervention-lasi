@@ -31,8 +31,8 @@
  * GLOBAL STYLES
  *********************************************/
 body {
-  background-color: #ecd078;
-  background-image: url(dicoim/background_mustard.svg);
+  background-color: #d95b43;
+  background-image: url(dicoim/background_orange.svg);
   background-size: contain;
   background-position: center top;
   background-repeat: no-repeat;
@@ -43,7 +43,7 @@ body {
   font-size: 36px;
   font-weight: normal;
   letter-spacing: -0.02em;
-  color: #ecd078; }
+  color: #d95b43; }
 
 ::selection {
   color: white;
@@ -60,7 +60,7 @@ body {
 .reveal h5,
 .reveal h6 {
   margin: 0 0 20px 0;
-  color: #ecd078;
+  color: #d95b43;
   font-family: "Slackey", sans-serif;
   line-height: 0.9em;
   letter-spacing: -0.08em;
@@ -74,7 +74,7 @@ body {
  * LINKS
  *********************************************/
 .reveal a:not(.image) {
-  color: #c02942;
+  color: #d3ba6b;
   text-decoration: none;
   -webkit-transition: color .15s ease;
   -moz-transition: color .15s ease;
@@ -83,7 +83,7 @@ body {
   transition: color .15s ease; }
 
 .reveal a:not(.image):hover {
-  color: #c2513b;
+  color: #d3ba6b;
   text-shadow: none;
   border: none; }
 
@@ -125,9 +125,9 @@ body {
 
 .footer img.partner_logo {
   position: absolute;
-  top: 9%;
-  left: 26%;
-  width: 13%; }
+  top: 12%;
+  left: 25.5%;
+  width: 12%; }
 
 .footer img.ccby_logo {
   position: absolute;
