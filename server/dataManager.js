@@ -19,7 +19,7 @@ var initialise = function (callback) {
 				d.forEach(function (entry) {
 					if (!data[entry.parameter]) data[entry.parameter] = { };
 					if (!data[entry.parameter][entry.geography]) data[entry.parameter][entry.geography] = { };
-					data[entry.parameter][entry.geography][entry.period] = entry.variationPerc;
+					data[entry.parameter][entry.geography][entry.period] = entry.forecast;
 				})
 				callback(null);
 			});
@@ -95,7 +95,3 @@ exports.write = function (parameterName, geography, year, quarter, value, callba
 		writeForecasts(callback);
 	});
 }
-
-calculateScores(function (err) { });
-// initialise(function (err) { console.log(data); });
-// exports.write("yearLastWorkedByAge", "hartlepool", 2015, 2, -5, function (err) { });
