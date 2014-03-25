@@ -1,0 +1,38 @@
+{
+    "name": "hack-for-social-intervention",
+    "version": "0.0.1",
+    "description": "",
+    "author": {
+        "name": "Gianfranco Cecconi",
+        "email": "gianfranco.cecconi@digitalcontraptionsimaginarium.co.uk",
+        "url": "http://www.digitalcontraptionsimaginarium.co.uk"
+        },
+    "contributors": [ 
+        {
+          "name": "Gianfranco Cecconi",
+          "email": "gianfranco.cecconi@digitalcontraptionsimaginarium.co.uk"
+        } 
+    ],
+    "homepage": "https://github.com/Digital-Contraptions-Imaginarium/cabinet-office-social-intervention-hackathon",
+    "repository": { 
+        "type": "git", 
+        "url": "https://github.com/Digital-Contraptions-Imaginarium/cabinet-office-social-intervention-hackathon.git"
+    },
+    "bugs": { 
+        "url": "https://github.com/Digital-Contraptions-Imaginarium/cabinet-office-social-intervention-hackathon/issues" 
+    },
+    "keywords": [
+        "UK", "government", "procurement"
+    ],
+    "dependencies" : {
+        "async": ">=0.2.10",
+        "csv": ">=0.3.7",
+        "optimist": ">=0.6.1",
+        "restify": ">=2.6.3",
+        "underscore": "=1.3.3",
+        "underscore.string": "=2.3.3"
+    },
+    "engines": {
+        "node": ">=0.10.26"
+    }
+}
