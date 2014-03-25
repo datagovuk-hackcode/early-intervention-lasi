@@ -1,10 +1,21 @@
-var censusReader = require('./censusReader'),
+var argv = require("optimist")
+		.usage('Usage: $0 --port <server port>')
+		.demand([ "port" ])
+		.alias("port", "p")
+		.default("port", "8080")	
+		.argv,
+	censusReader = require('./censusReader'),
 	restify = require('restify'),
 	underscore = require('underscore');
 
 function getCensusParameter (req, res, next) {
 	var f = { 
-		'lastYearWorked': censusReader.getLastYearWorked 
+		'yearLastWorkedNotInEmployment': censusReader.getYearLastWorkedNotInEmployment,
+		'yearLastWorkedNeverWorked': censusReader.getYearLastWorkedNeverWorked,
+		'yearLastWorkedByAge': censusReader.getYearLastWorkedByAge,
+		'highestLevelOfQualification': censusReader.getHighestLevelOfQualification,
+		'adultsNotInEmployment': censusReader.getAdultsNotInEmployment,
+		'establishmentsWithPersonsSleepingRough': censusReader.getEstablishmentsWithPersonsSleepingRough,
 	}[req.params.parameter];
 	f(req.params.geography, function (err, result) {
 		res.send({ result: result });
@@ -13,7 +24,7 @@ function getCensusParameter (req, res, next) {
 }
 
 var server = restify.createServer();
-server.get('/getCensusParameter/:parameter/:geography', getCensusParameter);
+server.get('/getParameter/:parameter/:geography', getCensusParameter);
 // server.head('/hello/:name', respond);
 
 server.listen(8080, function() {
