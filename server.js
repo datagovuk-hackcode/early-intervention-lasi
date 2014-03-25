@@ -27,6 +27,6 @@ var server = restify.createServer();
 server.get('/getParameter/:parameter/:geography', getCensusParameter);
 // server.head('/hello/:name', respond);
 
-server.listen(8080, function() {
+server.listen(parseInt(argv.port), function() {
   console.log('%s listening at %s', server.name, server.url);
 });

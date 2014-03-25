@@ -10,7 +10,8 @@ exports.getYearLastWorkedNotInEmployment = function (geography, callback) {
 			callback(null, parseInt(data[0]['Year Last Worked: Not in employment: Total; measures: Value']));
 		})
 		.transform(function (row) {
-			if ((row["Rural Urban"] !== "Total") ||
+			if ((row["geography"] === null) ||
+				(row["Rural Urban"] !== "Total") ||
 				(row["geography"].toLowerCase() !== geography)) return null;
 			return row;
 		});
@@ -26,7 +27,8 @@ exports.getYearLastWorkedNeverWorked = function (geography, callback) {
 			callback(null, parseInt(data[0]['Year Last Worked: Never worked; measures: Value']));
 		})
 		.transform(function (row) {
-			if ((row["Rural Urban"] !== "Total") ||
+			if ((row["geography"] === null) ||
+				(row["Rural Urban"] !== "Total") ||
 				(row["geography"].toLowerCase() !== geography)) return null;
 			return row;
 		});
@@ -42,7 +44,9 @@ exports.getYearLastWorkedByAge = function (geography, callback) {
 			callback(null, parseInt(data[0]['Year Last Worked: Not in employment: Total; Age: All categories: Age 16 and over; measures: Value']));
 		})
 		.transform(function (row) {
-			if (row["geography"].toLowerCase() !== geography) return null;
+			console.log(row["geography"]);
+			if ((row["geography"] === null) || 
+				(row["geography"].toLowerCase() !== geography)) return null;
 			return row;
 		});
 }
@@ -57,7 +61,8 @@ exports.getHighestLevelOfQualification = function (geography, callback) {
 			callback(null, parseInt(data[0]['Qualification: No qualifications; measures: Value']));
 		})
 		.transform(function (row) {
-			if ((row["Rural Urban"] !== "Total") ||
+			if ((row["geography"] === null) ||
+				(row["Rural Urban"] !== "Total") ||
 				(row["geography"].toLowerCase() !== geography)) return null;
 			return row;
 		});
@@ -73,7 +78,8 @@ exports.getAdultsNotInEmployment = function (geography, callback) {
 			callback(null, parseInt(data[0]['Household Composition: No adults in employment in household; measures: Value']));
 		})
 		.transform(function (row) {
-			if ((row["Rural Urban"] !== "Total") ||
+			if ((row["geography"] === null) ||
+				(row["Rural Urban"] !== "Total") ||
 				(row["geography"].toLowerCase() !== geography)) return null;
 			return row;
 		});
@@ -89,7 +95,8 @@ exports.getEstablishmentsWithPersonsSleepingRough = function (geography, callbac
 			callback(null, parseInt(data[0]['Residence Type: Communal establishments with persons sleeping rough identified; measures: Value']));
 		})
 		.transform(function (row) {
-			if ((row["Rural Urban"] !== "Total") ||
+			if ((row["geography"] === null) ||
+				(row["Rural Urban"] !== "Total") ||
 				(row["geography"].toLowerCase() !== geography)) return null;
 			return row;
 		});
