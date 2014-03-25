@@ -5,7 +5,9 @@ var csv = require('csv'),
 var data = undefined;
 
 var initialise = function (callback) {
-	if (!data && fs.existsSync('data/forecast.csv')) {
+	if (data) {
+		callback(null);
+	} else if (fs.existsSync('data/forecast.csv')) {
 		csv()
 			.from.path('data/forecast.csv', {
 				columns: true
@@ -60,4 +62,4 @@ exports.write = function (parameterName, geography, year, quarter, value, callba
 }
 
 // initialise(function (err) { console.log(data); });
-exports.write("yearLastWorkedByAge", "hartlepool", 2015, 2, -5, function (err) { });
+// exports.write("yearLastWorkedByAge", "hartlepool", 2015, 2, -5, function (err) { });
