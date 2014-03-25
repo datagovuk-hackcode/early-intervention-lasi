@@ -34,7 +34,8 @@ var n = this,
 		}
 	};	
 
-var stressIndeces = { },
+var population,
+	stressIndeces = { },
 	indexColours = { },
 	configuration,
 	layers = { },
@@ -97,9 +98,12 @@ var onEachFeature = function (feature, layer) {
 
 var style = function (feature) {
 	if (!feature.properties.stressIndex) {
+		// TODO: because of a bug some of the matching between population data and
+		// LA names fail, 
+		feature.properties.population = population[feature.properties.LAD13NM.toLowerCase()] ? population[feature.properties.LAD13NM.toLowerCase()] : 322275;
 		feature.properties.stressIndex = Math.random();
-		feature.properties.newHomelessPeoplePerQuarter = feature.properties.stressIndex <= .2 ? "none" : Math.floor(50 * feature.properties.stressIndex);
-		feature.properties.estimatedFinancialImpact = _.isNumber(feature.properties.newHomelessPeoplePerQuarter) ? "£" + (feature.properties.newHomelessPeoplePerQuarter *  8391 / 4).formatMoney(2, '.', ',') : "none";
+		feature.properties.newHomelessPeoplePerQuarter = feature.properties.stressIndex <= .2 ? 0 : Math.floor(50 * feature.properties.population / 1463740 * feature.properties.stressIndex);
+		feature.properties.estimatedFinancialImpact = _.isNumber(feature.properties.newHomelessPeoplePerQuarter) ? (feature.properties.newHomelessPeoplePerQuarter *  8391 / 4) : 0;
 		indexColours[feature.properties.LAD13NM] = "hsl(240,65%," + parseInt(100 - feature.properties.stressIndex * 100) + "%)";
 	} 
     return {
@@ -116,112 +120,124 @@ var initMap = function () {
 
 	_.mixin(_.str.exports());
 
-	configuration = CONFIGURATION;
-	async.each(_.keys(configuration.layers), function (layerName, callback) {
-		switch (configuration.layers[layerName].dataType) {
-			case "geojson":
-				d3.json(configuration.layers[layerName].dataFile, function(data) { 
-					configuration.layers[layerName].geoJSON = data;
-					configuration.layers[layerName].geoJSON.features = _.map(
-						configuration.layers[layerName].geoJSON.features, 
-						function (feature) {
-							feature.properties.licenceType = layerName;
-							return feature;
-						});
-					callback(null); 
+	d3.csv("population.csv", function (err, data) {
+		population = { };
+		data.forEach(function (e) {
+			population[e.geography.toLowerCase()] = parseInt(e.population);
+		});
+
+		configuration = CONFIGURATION;
+		async.each(_.keys(configuration.layers), function (layerName, callback) {
+			switch (configuration.layers[layerName].dataType) {
+				case "geojson":
+					d3.json(configuration.layers[layerName].dataFile, function(data) { 
+						configuration.layers[layerName].geoJSON = data;
+						configuration.layers[layerName].geoJSON.features = _.map(
+							configuration.layers[layerName].geoJSON.features, 
+							function (feature) {
+								feature.properties.licenceType = layerName;
+								return feature;
+							});
+						callback(null); 
+					});
+					break;
+			}
+		}, function (err) {
+
+			// create the tile layer with correct attribution
+			var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+				osmAttrib='Map data &copy; <a target="_blank" href="http://www.openstreetmap.org/about">OpenStreetMap</a> contributors' + (!qs.embed ? "" : '| See the full website at <a target="_blank" href="http://www.digitalcontraptionsimaginarium.co.uk/oil-and-gas-licensing-map/">Digital Contraptions Imaginarium</a>'),
+				osm = new L.TileLayer(osmUrl, { minZoom: 1, maxZoom: 12, attribution: osmAttrib });		
+
+			// set up the data layers
+			_.each(_.keys(configuration.layers), function (layerName) {
+				layers[layerName] = L.geoJson(configuration.layers[layerName].geoJSON, { 
+					style: style, 
+					onEachFeature: onEachFeature,
 				});
-				break;
-		}
-	}, function (err) {
-
-		// create the tile layer with correct attribution
-		var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-			osmAttrib='Map data &copy; <a target="_blank" href="http://www.openstreetmap.org/about">OpenStreetMap</a> contributors' + (!qs.embed ? "" : '| See the full website at <a target="_blank" href="http://www.digitalcontraptionsimaginarium.co.uk/oil-and-gas-licensing-map/">Digital Contraptions Imaginarium</a>'),
-			osm = new L.TileLayer(osmUrl, { minZoom: 1, maxZoom: 12, attribution: osmAttrib });		
-
-		// set up the data layers
-		_.each(_.keys(configuration.layers), function (layerName) {
-			layers[layerName] = L.geoJson(configuration.layers[layerName].geoJSON, { 
-				style: style, 
-				onEachFeature: onEachFeature,
 			});
+
+			// set up the map
+			var defaultLayersToDisplay = [ osm, layers["Local Authorities"] ];
+			map = new L.Map('map', {
+				layers: defaultLayersToDisplay,	
+				center: new L.LatLng(parseFloat(qs.lat) || 51.5, parseFloat(qs.lon) || -1.6),	
+				zoom: parseInt(qs.zoom) || 8,
+				zoomControl: false,
+			});
+
+			if (!qs.embed) {
+				titleControl = L.control({ position: 'topleft' });
+				titleControl.onAdd = function (map) {
+				    this._div = L.DomUtil.create('div', 'titleControl'); 
+				    this._div.innerHTML = "<h1>L.A.S.I.</h1><h2>Homelessness stress index browser</h2><p>This is the LASI browser for homelessness. The darker the colour the highest is the financial stress expected to affect the local authority in the specified period.</p>";
+				    return this._div;
+				};
+				titleControl.addTo(map);
+			}
+
+			// set up the 'layers control'
+			// TODO make the looks of this control consistent with the others, first attempt failed
+			// L.control.layers(undefined, layers, { collapsed: false }).addTo(map);
+			var layersForControl = { };
+			_.each(_.keys(layers), function (layerName) {
+				layersForControl[layerName + "&nbsp;<div style='width:10px;height:10px;border:1px solid black;background-color:" + configuration.layers[layerName].colour + ";display:inline-block'></div>"] = layers[layerName];
+			});
+			layersControl = L.control.layers(undefined, layersForControl, { collapsed: false, position: 'topleft' });
+			layersControl.addTo(map);
+
+			// set up the 'info control'
+			if (!qs.embed) {
+
+				infoControl = L.control();
+				infoControl.onAdd = function (map) {
+				    this._div = L.DomUtil.create('div', 'infoControl'); 
+				    this.update();
+				    return this._div;
+				};
+
+				// method that we will use to update the control based on feature properties passed
+				infoControl.update = function (properties) {
+					if (properties) {
+				    	this._div.innerHTML = 
+				    		'<h4>Detailed LA info</h4>' + 
+				    		_.reduce(_.keys(properties).sort(), function (memo, propertyName) {
+				    			if (properties[propertyName] != null) {
+						    		switch (propertyName.toLowerCase()) {
+						    			case "lad13nm":
+											return memo + "<nobr><b>Name:</b> " + _.capitalize(properties[propertyName].toString().toLowerCase()) + "</nobr><br />";
+											break;
+						    			case "stressindex":
+											return memo + "<nobr><b>Stress index:</b> " + parseInt(properties[propertyName] * 100) + "%</nobr><br />";
+											break;
+						    			case "population":
+											return memo + "<nobr><b>Census 2011 population:</b> " + properties[propertyName].formatMoney(0, '.', ',') + "</nobr><br />";
+											break;
+						    			case "newhomelesspeopleperquarter":
+											return memo + "<nobr><b>Expected new homeless people in quarter:</b> " + (properties[propertyName] === 0 ? "none" : properties[propertyName]) + "</nobr><br />";
+											break;
+						    			case "estimatedfinancialimpact":
+											return memo + "<nobr><b>Estimated financial impact:</b> " + (properties[propertyName] === 0 ? "none" : "£" + properties[propertyName].formatMoney(2, '.', ',')) + "</nobr><br />";
+											break;
+						    			default:
+						    				return memo;
+						    		}
+						    	} else {
+						    		return memo;
+						    	}
+				    		}, "");
+				    } else {
+				    	this._div.innerHTML = '<h4>Detailed LA info</h4>Hover over the map to select the<br>local authority of interest' 
+				    }
+				};
+				infoControl.addTo(map);
+			}
+
+			// explicitly adding the zoom control so that it is below the titleControl
+			zoomControl = L.control.zoom().addTo(map);
+
 		});
-
-		// set up the map
-		var defaultLayersToDisplay = [ osm, layers["Local Authorities"] ];
-		map = new L.Map('map', {
-			layers: defaultLayersToDisplay,	
-			center: new L.LatLng(parseFloat(qs.lat) || 51.5, parseFloat(qs.lon) || -1.6),	
-			zoom: parseInt(qs.zoom) || 8,
-			zoomControl: false,
-		});
-
-		if (!qs.embed) {
-			titleControl = L.control({ position: 'topleft' });
-			titleControl.onAdd = function (map) {
-			    this._div = L.DomUtil.create('div', 'titleControl'); 
-			    this._div.innerHTML = "<h1>L.A.S.I.</h1><h2>Homelessness stress index browser</h2><p>This is the LASI browser for homelessness. The darker the colour the highest is the financial stress expected to affect the local authority in the specified period.</p>";
-			    return this._div;
-			};
-			titleControl.addTo(map);
-		}
-
-		// set up the 'layers control'
-		// TODO make the looks of this control consistent with the others, first attempt failed
-		// L.control.layers(undefined, layers, { collapsed: false }).addTo(map);
-		var layersForControl = { };
-		_.each(_.keys(layers), function (layerName) {
-			layersForControl[layerName + "&nbsp;<div style='width:10px;height:10px;border:1px solid black;background-color:" + configuration.layers[layerName].colour + ";display:inline-block'></div>"] = layers[layerName];
-		});
-		layersControl = L.control.layers(undefined, layersForControl, { collapsed: false, position: 'topleft' });
-		layersControl.addTo(map);
-
-		// set up the 'info control'
-		if (!qs.embed) {
-
-			infoControl = L.control();
-			infoControl.onAdd = function (map) {
-			    this._div = L.DomUtil.create('div', 'infoControl'); 
-			    this.update();
-			    return this._div;
-			};
-
-			// method that we will use to update the control based on feature properties passed
-			infoControl.update = function (properties) {
-				if (properties) {
-			    	this._div.innerHTML = 
-			    		'<h4>Detailed LA info</h4>' + 
-			    		_.reduce(_.keys(properties).sort(), function (memo, propertyName) {
-			    			if (properties[propertyName] != null) {
-					    		switch (propertyName.toLowerCase()) {
-					    			case "lad13nm":
-										return memo + "<nobr><b>Name:</b> " + _.capitalize(properties[propertyName].toString().toLowerCase()) + "</nobr><br />";
-										break;
-					    			case "stressindex":
-										return memo + "<nobr><b>Stress index:</b> " + parseInt(properties[propertyName] * 100) + "%</nobr><br />";
-										break;
-					    			case "newhomelesspeopleperquarter":
-										return memo + "<nobr><b>Expected new homeless people in quarter:</b> " + properties[propertyName] + "</nobr><br />";
-										break;
-					    			case "estimatedfinancialimpact":
-										return memo + "<nobr><b>Estimated financial impact:</b> " + properties[propertyName] + "</nobr><br />";
-										break;
-					    			default:
-					    				return memo;
-					    		}
-					    	} else {
-					    		return memo;
-					    	}
-			    		}, "");
-			    } else {
-			    	this._div.innerHTML = '<h4>Detailed LA info</h4>Hover over the map to select the<br>local authority of interest' 
-			    }
-			};
-			infoControl.addTo(map);
-		}
-
-		// explicitly adding the zoom control so that it is below the titleControl
-		zoomControl = L.control.zoom().addTo(map);
-
 	});
+
+
 }
