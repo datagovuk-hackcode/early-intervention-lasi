@@ -1,10 +1,21 @@
+<?php 
+	$area = "westminster";
+	$name = ucfirst(strtolower($_GET['name']));
+
+	if($name == "Mark") {
+		$area = "lewisham";
+	} else if($name == "Gwyn") {
+		$area = "blackpool";
+	}
+?>
+
 <!doctype html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Hack social intervention</title>
+	<title>Local Authority Stress Index (LASI)</title>
 	<!-- <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"> -->
 	<link rel="stylesheet" href="build/bootstrap.min.css">
 	<link rel="stylesheet" href="build/main.css">
@@ -13,7 +24,7 @@
 	<nav class="navbar navbar-default navbar-fixed-top">
 		<div class="container">
 			<div class="navbar-header">
-				<a href="index.php" class="navbar-brand">Unit cost application</a>
+				<a href="index.php" class="navbar-brand">Local Authority Stress Index</a>
 			</div>
 			<div class="navbar-collapse collapse" id="navbar-main">
 				<ul class="nav navbar-nav">
@@ -33,7 +44,9 @@
 					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-					<li><a href="profile.php">Profile<span class="glyphicon glyphicon-user btn-sm"></span></a></li>
+					<?php if($name):?>
+						<li><a href="profile.php"><?php printf("%s's profile", $name) ?><span class="glyphicon glyphicon-user btn-sm"></span></a></li>
+					<?php endif; ?>
 					<li><a href="unit-cost-database.php">Unit Cost Database<span class="glyphicon glyphicon-star btn-sm"></span></a></li>          	
 					<li><a href="best-practice.php">Best practice knowledgebase<span class="glyphicon glyphicon-ok btn-sm"></span></a></li>
 				</ul>

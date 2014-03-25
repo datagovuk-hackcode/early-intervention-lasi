@@ -11,3 +11,11 @@ main {
 .best-practice-filters li {
 	margin-bottom: 0.2em;
 }
+
+input[type=number] {
+	color: #333; 
+	max-width: 90px;
+	padding: 0.3em;
+	margin-bottom: 0.3em;
+	border-radius: 3px;
+}
