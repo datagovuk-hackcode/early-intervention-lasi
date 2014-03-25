@@ -22,7 +22,8 @@ var	/* I found an explaination of the acronyms used for the licence types in
 		}
 	};	
 
-var configuration,
+var indexColours = { },
+	configuration,
 	layers = { },
 	map,
 	layersControl,
@@ -69,11 +70,7 @@ var onEachFeature = function (feature, layer) {
 	}
 
 	var openLicenceDetail = function (e) {
-		if (!qs.embed) {
-			window.open("https://www.og.decc.gov.uk/eng/fox/decc/PED300X/licence?LICENCE_TYPE=" + e.target.feature.properties["LICENCE_TY"] + "&LICENCE_NO="  + e.target.feature.properties["LICENCE"].match(/\d+/g), "_blank");
-		} else {
-			window.open("http://www.digitalcontraptionsimaginarium.co.uk/oil-and-gas-licensing-map/", "_blank");
-		}
+		window.open("http://www.digitalcontraptionsimaginarium.co.uk/oil-and-gas-licensing-map/", "_blank");
 	}
 
 	layer.on({
@@ -86,8 +83,9 @@ var onEachFeature = function (feature, layer) {
 }
 
 var style = function (feature) {
+	if (!indexColours[feature.properties.LAD13NM]) indexColours[feature.properties.LAD13NM] = "hsl(240,65%," + parseInt(Math.random() * 100) + "%)";
     return {
-        fillColor: configuration.layers[feature.properties.licenceType].colour,
+        fillColor: indexColours[feature.properties.LAD13NM],
         weight: 2,
         opacity: 1,
         color: 'white',
