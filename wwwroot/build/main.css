@@ -1,0 +1,11 @@
+body {
+  font-family: Helvetica, sans-serif;
+}
+
+main {
+  margin-top: 5em;
+}
+
+.best-practice-filters li {
+  margin-bottom: 0.2em;
+}
