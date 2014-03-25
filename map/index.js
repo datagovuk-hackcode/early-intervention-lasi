@@ -1,4 +1,16 @@
-var	/* I found an explaination of the acronyms used for the licence types in
+// quick and dirty thanks to http://stackoverflow.com/a/149099
+Number.prototype.formatMoney = function(c, d, t){
+var n = this, 
+    c = isNaN(c = Math.abs(c)) ? 2 : c, 
+    d = d == undefined ? "." : d, 
+    t = t == undefined ? "," : t, 
+    s = n < 0 ? "-" : "", 
+    i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+    j = (j = i.length) > 3 ? j % 3 : 0;
+   return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+ };
+
+ var	/* I found an explaination of the acronyms used for the licence types in
 	   DECC's "The Unconventional Hydrocarbon Resources of Britain's Onshore 
 	   Basins" document, available at https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/66171/promote-uk-cbm.pdf
 	*/
@@ -17,12 +29,13 @@ var	/* I found an explaination of the acronyms used for the licence types in
 			"Local Authorities": {
 				"dataFile": "las.json",
 				"dataType": "geojson",
-				"colour": "orange",
+				"colour": "hsl(240,65%,0%)",
 			},
 		}
 	};	
 
-var indexColours = { },
+var stressIndeces = { },
+	indexColours = { },
 	configuration,
 	layers = { },
 	map,
@@ -83,7 +96,12 @@ var onEachFeature = function (feature, layer) {
 }
 
 var style = function (feature) {
-	if (!indexColours[feature.properties.LAD13NM]) indexColours[feature.properties.LAD13NM] = "hsl(240,65%," + parseInt(Math.random() * 100) + "%)";
+	if (!feature.properties.stressIndex) {
+		feature.properties.stressIndex = Math.random();
+		feature.properties.newHomelessPeoplePerQuarter = feature.properties.stressIndex <= .2 ? "none" : Math.floor(50 * feature.properties.stressIndex);
+		feature.properties.estimatedFinancialImpact = _.isNumber(feature.properties.newHomelessPeoplePerQuarter) ? "£" + (feature.properties.newHomelessPeoplePerQuarter *  8391 / 4).formatMoney(2, '.', ',') : "none";
+		indexColours[feature.properties.LAD13NM] = "hsl(240,65%," + parseInt(100 - feature.properties.stressIndex * 100) + "%)";
+	} 
     return {
         fillColor: indexColours[feature.properties.LAD13NM],
         weight: 2,
@@ -133,8 +151,8 @@ var initMap = function () {
 		var defaultLayersToDisplay = [ osm, layers["Local Authorities"] ];
 		map = new L.Map('map', {
 			layers: defaultLayersToDisplay,	
-			center: new L.LatLng(parseFloat(qs.lat) || 54.0, parseFloat(qs.lon) || 1.5),	
-			zoom: parseInt(qs.zoom) || 6,
+			center: new L.LatLng(parseFloat(qs.lat) || 51.5, parseFloat(qs.lon) || -1.6),	
+			zoom: parseInt(qs.zoom) || 8,
 			zoomControl: false,
 		});
 
@@ -142,7 +160,7 @@ var initMap = function () {
 			titleControl = L.control({ position: 'topleft' });
 			titleControl.onAdd = function (map) {
 			    this._div = L.DomUtil.create('div', 'titleControl'); 
-			    this._div.innerHTML = "<h1>L.A.S.I.</h1><p>This is the LASI browser. By hovering on each of the local authorities you will see more detailed information about their stress index.</p>";
+			    this._div.innerHTML = "<h1>L.A.S.I.</h1><h2>Homelessness stress index browser</h2><p>This is the LASI browser for homelessness. The darker the colour the highest is the financial stress expected to affect the local authority in the specified period.</p>";
 			    return this._div;
 			};
 			titleControl.addTo(map);
@@ -177,7 +195,16 @@ var initMap = function () {
 			    			if (properties[propertyName] != null) {
 					    		switch (propertyName.toLowerCase()) {
 					    			case "lad13nm":
-										return memo + "<b>Name:<br />" + _.capitalize(properties[propertyName].toString().toLowerCase()) + "<br />";
+										return memo + "<nobr><b>Name:</b> " + _.capitalize(properties[propertyName].toString().toLowerCase()) + "</nobr><br />";
+										break;
+					    			case "stressindex":
+										return memo + "<nobr><b>Stress index:</b> " + parseInt(properties[propertyName] * 100) + "%</nobr><br />";
+										break;
+					    			case "newhomelesspeopleperquarter":
+										return memo + "<nobr><b>Expected new homeless people in quarter:</b> " + properties[propertyName] + "</nobr><br />";
+										break;
+					    			case "estimatedfinancialimpact":
+										return memo + "<nobr><b>Estimated financial impact:</b> " + properties[propertyName] + "</nobr><br />";
 										break;
 					    			default:
 					    				return memo;

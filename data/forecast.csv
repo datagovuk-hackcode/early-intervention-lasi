@@ -1,3 +1,5 @@
-parameter,geography,period,forecast
-yearLastWorkedByAge,hartlepool,2015 Q1,120
-yearLastWorkedByAge,hartlepool,2015 Q2,300
+parameter,geography,period,variationPerc
+yearLastWorkedByAge,hartlepool,2015 Q1,
+yearLastWorkedByAge,hartlepool,2015 Q2,
+yearLastWorkedByAge,Hartlepool,2015 Q3,12345
+yearLastWorkedNotInEmployment,Hartlepool,2015 Q3,12345
