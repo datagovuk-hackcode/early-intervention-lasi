@@ -1,4 +1,6 @@
-var csv = require('csv'),
+var async = require('async'),
+	censusReader = require('./censusReader'),
+	csv = require('csv'),
 	fs = require('fs'),
 	_ = require('underscore');
 
@@ -36,7 +38,7 @@ var writeForecasts = function (callback) {
 					parameter: parameterName,
 					geography: geography,
 					period: period,
-					variationPerc: data[parameterName][geography][period],
+					forecast: data[parameterName][geography][period],
 				});
 			});
 		});
@@ -52,6 +54,39 @@ var writeForecasts = function (callback) {
 		});
 }
 
+var calculateScores = function (callback) {
+	initialise(function (err) {
+		var parameters = _.keys(data),
+			geographies = _.unique(_.reduce(parameters, function (memo, parameter) {
+				return memo.concat(_.keys(data[parameter]));
+			}, [ ])),
+			periods = _.unique(_.reduce(parameters, function (memo, parameter) {
+				return memo.concat(_.reduce(geographies, function (memo2, geography) {
+					return memo2.concat(_.keys(data[parameter][geography]));
+				}, [ ]));
+			}, [ ]));
+		// the relative scoring here works only because for the time being we
+		// picked kpis where higher is always worse
+		var overallScores = { };
+		async.each(geographies, function (geography, callback) {
+			if (!overallScores[geography]) overallScores[geography] = { };
+			async.each(periods, function (period, callback) {
+				// *****************************************************
+				// for the sake of the prototype, the score is random!!!
+				// *****************************************************
+				overallScores[geography][period] = Math.random();
+				callback(null);
+			}, callback);
+		}, function (err) {
+			console.log(parameters);
+			console.log(geographies);
+			console.log(periods);
+			console.log(overallScores);
+			callback(null);
+		});
+	});
+}
+
 exports.write = function (parameterName, geography, year, quarter, value, callback) {
 	initialise(function (err) {
 		if (!data[parameterName]) data[parameterName] = { };
@@ -61,5 +96,6 @@ exports.write = function (parameterName, geography, year, quarter, value, callba
 	});
 }
 
+calculateScores(function (err) { });
 // initialise(function (err) { console.log(data); });
 // exports.write("yearLastWorkedByAge", "hartlepool", 2015, 2, -5, function (err) { });

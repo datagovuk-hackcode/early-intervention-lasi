@@ -1,5 +1,22 @@
 var csv = require('csv');
 
+exports.getUsualResidentPopulation = function (geography, callback) {
+	geography = geography.toLowerCase();
+	csv()
+		.from.path('data/nomisweb-data-usual-resident-population.csv', {
+			columns: true
+		})
+		.to.array(function (data, count) {
+			callback(null, parseInt(data[0]['Variable: All usual residents; measures: Value']));
+		})
+		.transform(function (row) {
+			if ((row["geography"] === null) ||
+				(row["Rural Urban"] !== "Total") ||
+				(row["geography"].toLowerCase() !== geography)) return null;
+			return row;
+		});
+}
+
 exports.getYearLastWorkedNotInEmployment = function (geography, callback) {
 	geography = geography.toLowerCase();
 	csv()
@@ -44,7 +61,6 @@ exports.getYearLastWorkedByAge = function (geography, callback) {
 			callback(null, parseInt(data[0]['Year Last Worked: Not in employment: Total; Age: All categories: Age 16 and over; measures: Value']));
 		})
 		.transform(function (row) {
-			console.log(row["geography"]);
 			if ((row["geography"] === null) || 
 				(row["geography"].toLowerCase() !== geography)) return null;
 			return row;
