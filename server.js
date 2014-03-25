@@ -2,21 +2,18 @@ var csv = require('csv'),
 	restify = require('restify'),
 	underscore = require('underscore');
 
-function getCensusParameter (parameterName, geography, callback) {
-	var CONFIG = { 
-		'lastYearWorked': { filename: 'nomisweb-data-year-last-worked.csv',
-							columnName: 'Year Last Worked: Last worked in 2011; measures: Value' } 
-	}[parameterName];
+function getLastYearWorked (geography, callback) {
+	geography = geography.toLowerCase();
 	csv()
-		.from.path('data/' + CONFIG.filename, {
+		.from.path('data/nomisweb-data-year-last-worked.csv', {
 			columns: true
 		})
 		.to.array(function (data, count) {
-			callback(null, data[0][CONFIG.columnName]);
+			callback(null, parseInt(data[0]['Year Last Worked: Last worked in 2011; measures: Value']));
 		})
 		.transform(function (row) {
 			if ((row["Rural Urban"] !== "Total") ||
-				(row["geography"] !== geography)) return null;
+				(row["geography"].toLowerCase() !== geography)) return null;
 			return row;
 		})
 		.on('close', function(count){
@@ -26,18 +23,19 @@ function getCensusParameter (parameterName, geography, callback) {
 		});
 }
 
-function respond(req, res, next) {
-  res.send('hello ' + req.params.name);
-  next();
+function getCensusParameter (req, res, next) {
+	var f = { 
+		'lastYearWorked': getLastYearWorked 
+	}[req.params.parameter];
+	f(req.params.geography, function (err, result) {
+		res.send({ result: result });
+		next();
+	});
 }
 
 var server = restify.createServer();
-server.get('/hello/:name', respond);
-server.head('/hello/:name', respond);
-
-getCensusParameter('lastYearWorked', 'Newport', function (err, data) {
-	console.log(data);
-});
+server.get('/getCensusParameter/:parameter/:geography', getCensusParameter);
+// server.head('/hello/:name', respond);
 
 server.listen(8080, function() {
   console.log('%s listening at %s', server.name, server.url);
