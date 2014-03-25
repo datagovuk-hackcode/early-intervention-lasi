@@ -5,10 +5,11 @@ var argv = require("optimist")
 		.default("port", "8080")	
 		.argv,
 	censusReader = require('./censusReader'),
+	dataManager = require('./dataManager'),
 	restify = require('restify'),
 	underscore = require('underscore');
 
-function getCensusParameter (req, res, next) {
+function getParameter (req, res, next) {
 	var f = { 
 		'yearLastWorkedNotInEmployment': censusReader.getYearLastWorkedNotInEmployment,
 		'yearLastWorkedNeverWorked': censusReader.getYearLastWorkedNeverWorked,
@@ -23,10 +24,18 @@ function getCensusParameter (req, res, next) {
 	});
 }
 
-var server = restify.createServer();
-server.get('/getParameter/:parameter/:geography', getCensusParameter);
-// server.head('/hello/:name', respond);
+// example http://localhost:8080/
+function setParameter (req, res, next) {
+	dataManager.write(req.params.parameter, req.params.geography, req.params.year, req.params.quarter, req.params.value, function (err) {
+		res.send({ result: "ok" });
+		next();
+	})	
+}
 
-server.listen(8080, function() {
-  console.log('%s listening at %s', server.name, server.url);
+var server = restify.createServer();
+server.get('/getParameter/:parameter/:geography', getParameter);
+server.get('/setParameter/:parameter/:geography/:year/:quarter/:value', setParameter);
+
+server.listen(parseInt(argv.port), function() {
+	console.log('%s listening at %s', server.name, server.url);
 });
