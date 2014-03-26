@@ -31,13 +31,13 @@ var n = this,
 				"dataType": "geojson",
 				"colour": "hsl(240,65%,0%)",
 			},
-			/*
+	
 			"Domestic violence": {
 				"dataFile": "las.json",
 				"dataType": "geojson",
 				"colour": "hsl(350,80%,0%)",
 			},
-			*/
+			
 		}
 	};	
 
