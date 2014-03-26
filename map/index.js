@@ -26,11 +26,18 @@ var n = this,
 	CONFIGURATION = {
 		"layers": {
 			// the order is relevant! from the bottom to the top one
-			"Local Authorities": {
+			"Homelessness": {
 				"dataFile": "las.json",
 				"dataType": "geojson",
 				"colour": "hsl(240,65%,0%)",
 			},
+			/*
+			"Domestic violence": {
+				"dataFile": "las.json",
+				"dataType": "geojson",
+				"colour": "hsl(350,80%,0%)",
+			},
+			*/
 		}
 	};	
 
@@ -116,6 +123,27 @@ var style = function (feature) {
     };
 }
 
+var styleDomesticViolence = function (feature) {
+	console.log("I should not be here");
+	if (!feature.properties.stressIndex) {
+		// TODO: because of a bug some of the matching between population data and
+		// LA names fail, 
+		feature.properties.population = population[feature.properties.LAD13NM.toLowerCase()] ? population[feature.properties.LAD13NM.toLowerCase()] : 322275;
+		feature.properties.stressIndex = Math.random();
+		feature.properties.newHomelessPeoplePerQuarter = feature.properties.stressIndex <= .2 ? 0 : Math.floor(50 * feature.properties.population / 1463740 * feature.properties.stressIndex);
+		feature.properties.estimatedFinancialImpact = _.isNumber(feature.properties.newHomelessPeoplePerQuarter) ? (feature.properties.newHomelessPeoplePerQuarter *  8391 / 4) : 0;
+		indexColours[feature.properties.LAD13NM] = "hsl(350,80%," + parseInt(100 - feature.properties.stressIndex * 100) + "%)";
+	} 
+    return {
+        fillColor: indexColours[feature.properties.LAD13NM],
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
+}
+
 var initMap = function () {
 
 	_.mixin(_.str.exports());
@@ -152,13 +180,13 @@ var initMap = function () {
 			// set up the data layers
 			_.each(_.keys(configuration.layers), function (layerName) {
 				layers[layerName] = L.geoJson(configuration.layers[layerName].geoJSON, { 
-					style: style, 
+					style: layerName === "Homelessness" ? style : styleDomesticViolence, 
 					onEachFeature: onEachFeature,
 				});
 			});
 
 			// set up the map
-			var defaultLayersToDisplay = [ osm, layers["Local Authorities"] ];
+			var defaultLayersToDisplay = [ osm, layers["Homelessness"] ];
 			map = new L.Map('map', {
 				layers: defaultLayersToDisplay,	
 				center: new L.LatLng(parseFloat(qs.lat) || 51.5, parseFloat(qs.lon) || -1.6),	
@@ -170,7 +198,7 @@ var initMap = function () {
 				titleControl = L.control({ position: 'topleft' });
 				titleControl.onAdd = function (map) {
 				    this._div = L.DomUtil.create('div', 'titleControl'); 
-				    this._div.innerHTML = "<h1>L.A.S.I.</h1><h2>Homelessness stress index browser</h2><p>This is the LASI browser for homelessness. The darker the colour the highest is the financial stress expected to affect the local authority in the specified period.</p>";
+				    this._div.innerHTML = "<h1>Local Authority Stress Index</h1><h2>Stress index browser</h2><p>This is the LASI browser. Use this map to analyse your LA against neighbouring ones and forecast the possible migration of individuals affected by social issues such as homelessness or domestic violence.</p><p>The darker the colour the highest is the financial stress expected to affect the local authority in the specified period.</p><p><img src='ogl.png'><a href='forecast.csv'>&nbsp;Download the data here</a></p>";
 				    return this._div;
 				};
 				titleControl.addTo(map);
