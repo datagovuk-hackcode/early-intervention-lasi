@@ -1,0 +1,52 @@
+Local Authority Stress Index
+L.A.S.I.
+team: Gianfranco Cecconi, Gwyn Jones, Mark Simpkins
+
+Goal
+To develop a view of the potential stresses that might occur within a local authority and present that at a national view level. So that each authority is not seen in isolation. 
+To encourage collaboration and sharing between local authority boundaries in developing interventions to reduce these stress points.
+To develop a viewpoint on support and resilience across local authority boundaries.
+
+What we have done.
+We have developed an example view of data by local authority that can show how this can be developed.
+The actual data and calculation can be easily changed according to the key metric / stress object that you wish to view against. 
+* Employment
+* Health
+* Education
+* Housing
+
+Stress Index
+Take a number of data points from a set of various sources:
+* Census 2011
+* Shelter (?)
+* Unit Price Index
+* Spendnetwork (existing LA spends with Charity / Social Service Providers)
+Calculate a stress value for the local authority.
+
+Stress Index
+Presented in a way to show your LA values, neighbour values and national values.
+LA update data quarterly with projections for the next:
+* 6 months
+* 12 months
+* 18 months
+* 24 months
+And the latest actuals for the current quarter (where data is available)
+
+What are stress points?
+% of population who have not worked in last year / never worked
+% of population leaving education without a qualification
+% of population being reported as rough sleepers
+% of school population that are being excluded from the main education system
+Public health issues (teenage pregnancy, overweight population, etc)
+
+about the calculation
+We have taken real data and have a system to capture the projection data from the LA’s but currently the calculation is just a placeholder.
+In next steps we would review the available metrics and develop a calculation formula with the relevant weightings to produce the stress index score.
+
+Next Steps
+Develop the calculation formulas. 
+* Research across the stakeholders on what they monitor and what areas cause stress within the authority boundaries.
+Development of a practice for each local authority to enter data and to instigate a review process by an external ‘moderator’ to validate the data.
+
+data sources
+Census 2011 data from nomisweb.co.uk
