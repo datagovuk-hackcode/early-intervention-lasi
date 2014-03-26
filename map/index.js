@@ -10,40 +10,25 @@ var n = this,
    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
  };
 
- var	/* I found an explaination of the acronyms used for the licence types in
-	   DECC's "The Unconventional Hydrocarbon Resources of Britain's Onshore 
-	   Basins" document, available at https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/66171/promote-uk-cbm.pdf
-	*/
-	LICENCE_TYPES = {
-		"al": "Appraisal",
-		"dl": "Development",
-		"ex": "Exploration",
-		"exl": "Exploration",
-		"ml": "Mining",
-		"pedl": "Petroleum Exploration and Development (generic, post-1996)",
-		"pl": "Production",
-	},
-	CONFIGURATION = {
+ var CONFIGURATION = {
 		"layers": {
-			// the order is relevant! from the bottom to the top one
 			"Homelessness": {
 				"dataFile": "las.json",
 				"dataType": "geojson",
-				"colour": "hsl(240,65%,0%)",
+				"colour": "hsl(240,65%,50%)",
 			},
-	
+			/*
 			"Domestic violence": {
 				"dataFile": "las.json",
 				"dataType": "geojson",
-				"colour": "hsl(350,80%,0%)",
+				"colour": "hsl(350,80%,50%)",
 			},
-			
+			*/
 		}
 	};	
 
 var population,
 	stressIndeces = { },
-	indexColours = { },
 	configuration,
 	layers = { },
 	map,
@@ -105,16 +90,14 @@ var onEachFeature = function (feature, layer) {
 
 var style = function (feature) {
 	if (!feature.properties.stressIndex) {
-		// TODO: because of a bug some of the matching between population data and
-		// LA names fail, 
 		feature.properties.population = population[feature.properties.LAD13NM.toLowerCase()] ? population[feature.properties.LAD13NM.toLowerCase()] : 322275;
 		feature.properties.stressIndex = Math.random();
 		feature.properties.newHomelessPeoplePerQuarter = feature.properties.stressIndex <= .2 ? 0 : Math.floor(50 * feature.properties.population / 1463740 * feature.properties.stressIndex);
 		feature.properties.estimatedFinancialImpact = _.isNumber(feature.properties.newHomelessPeoplePerQuarter) ? (feature.properties.newHomelessPeoplePerQuarter *  8391 / 4) : 0;
-		indexColours[feature.properties.LAD13NM] = "hsl(240,65%," + parseInt(100 - feature.properties.stressIndex * 100) + "%)";
+		feature.properties.colour = "hsl(240,65%," + parseInt(100 - feature.properties.stressIndex * 100) + "%)";
 	} 
     return {
-        fillColor: indexColours[feature.properties.LAD13NM],
+        fillColor: feature.properties.colour,
         weight: 2,
         opacity: 1,
         color: 'white',
@@ -124,18 +107,15 @@ var style = function (feature) {
 }
 
 var styleDomesticViolence = function (feature) {
-	console.log("I should not be here");
-	if (!feature.properties.stressIndex) {
-		// TODO: because of a bug some of the matching between population data and
-		// LA names fail, 
+	if (!feature.properties.domesticViolenceStressIndex) {
 		feature.properties.population = population[feature.properties.LAD13NM.toLowerCase()] ? population[feature.properties.LAD13NM.toLowerCase()] : 322275;
-		feature.properties.stressIndex = Math.random();
-		feature.properties.newHomelessPeoplePerQuarter = feature.properties.stressIndex <= .2 ? 0 : Math.floor(50 * feature.properties.population / 1463740 * feature.properties.stressIndex);
+		feature.properties.domesticViolenceStressIndex = Math.random();
+		feature.properties.newHomelessPeoplePerQuarter = feature.properties.domesticViolenceStressIndex <= .2 ? 0 : Math.floor(50 * feature.properties.population / 1463740 * feature.properties.domesticViolenceStressIndex);
 		feature.properties.estimatedFinancialImpact = _.isNumber(feature.properties.newHomelessPeoplePerQuarter) ? (feature.properties.newHomelessPeoplePerQuarter *  8391 / 4) : 0;
-		indexColours[feature.properties.LAD13NM] = "hsl(350,80%," + parseInt(100 - feature.properties.stressIndex * 100) + "%)";
+		feature.properties.colour = "hsl(350,80%," + parseInt(100 - feature.properties.domesticViolenceStressIndex * 100) + "%)";
 	} 
     return {
-        fillColor: indexColours[feature.properties.LAD13NM],
+        fillColor: feature.properties.colour,
         weight: 2,
         opacity: 1,
         color: 'white',
@@ -204,9 +184,6 @@ var initMap = function () {
 				titleControl.addTo(map);
 			}
 
-			// set up the 'layers control'
-			// TODO make the looks of this control consistent with the others, first attempt failed
-			// L.control.layers(undefined, layers, { collapsed: false }).addTo(map);
 			var layersForControl = { };
 			_.each(_.keys(layers), function (layerName) {
 				layersForControl[layerName + "&nbsp;<div style='width:10px;height:10px;border:1px solid black;background-color:" + configuration.layers[layerName].colour + ";display:inline-block'></div>"] = layers[layerName];
