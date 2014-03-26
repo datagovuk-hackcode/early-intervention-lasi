@@ -75,15 +75,10 @@ var onEachFeature = function (feature, layer) {
 	    map.fitBounds(e.target.getBounds());
 	}
 
-	var openLicenceDetail = function (e) {
-		window.open("http://www.digitalcontraptionsimaginarium.co.uk/oil-and-gas-licensing-map/", "_blank");
-	}
-
 	layer.on({
 		mouseover: highlightFeature,
 		mouseout: resetHighlight,
 		click: zoomToFeature,
-		dblclick: openLicenceDetail,
 	});
 
 }
@@ -94,10 +89,10 @@ var style = function (feature) {
 		feature.properties.stressIndex = Math.random();
 		feature.properties.newHomelessPeoplePerQuarter = feature.properties.stressIndex <= .2 ? 0 : Math.floor(50 * feature.properties.population / 1463740 * feature.properties.stressIndex);
 		feature.properties.estimatedFinancialImpact = _.isNumber(feature.properties.newHomelessPeoplePerQuarter) ? (feature.properties.newHomelessPeoplePerQuarter *  8391 / 4) : 0;
-		feature.properties.colour = "hsl(240,65%," + parseInt(100 - feature.properties.stressIndex * 100) + "%)";
+		feature.properties.homelessnessColour = "hsl(240,65%," + parseInt(100 - feature.properties.stressIndex * 100) + "%)";
 	} 
     return {
-        fillColor: feature.properties.colour,
+        fillColor: feature.properties.homelessnessColour,
         weight: 2,
         opacity: 1,
         color: 'white',
@@ -112,10 +107,10 @@ var styleDomesticViolence = function (feature) {
 		feature.properties.domesticViolenceStressIndex = Math.random();
 		feature.properties.newHomelessPeoplePerQuarter = feature.properties.domesticViolenceStressIndex <= .2 ? 0 : Math.floor(50 * feature.properties.population / 1463740 * feature.properties.domesticViolenceStressIndex);
 		feature.properties.estimatedFinancialImpact = _.isNumber(feature.properties.newHomelessPeoplePerQuarter) ? (feature.properties.newHomelessPeoplePerQuarter *  8391 / 4) : 0;
-		feature.properties.colour = "hsl(350,80%," + parseInt(100 - feature.properties.domesticViolenceStressIndex * 100) + "%)";
+		feature.properties.domesticviolenceColour = "hsl(350,80%," + parseInt(100 - feature.properties.domesticViolenceStressIndex * 100) + "%)";
 	} 
     return {
-        fillColor: feature.properties.colour,
+        fillColor: feature.properties.domesticviolenceColour,
         weight: 2,
         opacity: 1,
         color: 'white',
@@ -159,10 +154,18 @@ var initMap = function () {
 
 			// set up the data layers
 			_.each(_.keys(configuration.layers), function (layerName) {
-				layers[layerName] = L.geoJson(configuration.layers[layerName].geoJSON, { 
-					style: layerName === "Homelessness" ? style : styleDomesticViolence, 
-					onEachFeature: onEachFeature,
-				});
+				console.log("layerName is " + layerName);
+				if (layerName === "Homelessness") {
+					layers[layerName] = L.geoJson(configuration.layers[layerName].geoJSON, { 
+						style: style, 
+						onEachFeature: onEachFeature,
+					});
+				} else {
+					layers[layerName] = L.geoJson(configuration.layers[layerName].geoJSON, { 
+						style: styleDomesticViolence, 
+						onEachFeature: onEachFeature,
+					});
+				}
 			});
 
 			// set up the map
